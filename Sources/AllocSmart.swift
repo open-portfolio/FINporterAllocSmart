@@ -62,11 +62,11 @@ public class AllocSmart: FINporter {
         "US Total Market": .total,
     ]
 
-    public override var name: String { "Alloc Smart" }
-    public override var id: String { "alloc_smart" }
-    public override var description: String { "Detect and decode export files from Allocate Smartly." }
-    public override var sourceFormats: [AllocFormat] { [.CSV] }
-    public override var outputSchemas: [AllocSchema] { [.allocAllocation] }
+    override public var name: String { "Alloc Smart" }
+    override public var id: String { "alloc_smart" }
+    override public var description: String { "Detect and decode export files from Allocate Smartly." }
+    override public var sourceFormats: [AllocFormat] { [.CSV] }
+    override public var outputSchemas: [AllocSchema] { [.allocAllocation] }
 
     internal static let headerRE = #"""
     AllocateSmart.*
@@ -81,10 +81,10 @@ public class AllocSmart: FINporter {
     Asset,Description,.+
     (?:.+[\n])+
     """#
-    
+
     internal static let csvRE = #"Asset,Description,(?:.+(\n|\Z))+"#
 
-    public override func detect(dataPrefix: Data) throws -> DetectResult {
+    override public func detect(dataPrefix: Data) throws -> DetectResult {
         guard let str = FINporter.normalizeDecode(dataPrefix),
               str.range(of: AllocSmart.headerRE,
                         options: .regularExpression) != nil
@@ -97,15 +97,16 @@ public class AllocSmart: FINporter {
         }
     }
 
-    override open func decode<T: AllocRowed>(_ type: T.Type,
-                                            _ data: Data,
-                                            rejectedRows: inout [T.RawRow],
-                                            inputFormat _: AllocFormat? = nil,
-                                            outputSchema _: AllocSchema? = nil,
-                                            url _: URL? = nil,
-                                            defTimeOfDay _: String? = nil,
-                                            timeZone _: TimeZone = TimeZone.current,
-                                            timestamp _: Date? = nil) throws -> [T.DecodedRow] {
+    override open func decode<T: AllocRowed>(_: T.Type,
+                                             _ data: Data,
+                                             rejectedRows: inout [T.RawRow],
+                                             inputFormat _: AllocFormat? = nil,
+                                             outputSchema _: AllocSchema? = nil,
+                                             url _: URL? = nil,
+                                             defTimeOfDay _: String? = nil,
+                                             timeZone _: TimeZone = TimeZone.current,
+                                             timestamp _: Date? = nil) throws -> [T.DecodedRow]
+    {
         guard var str = FINporter.normalizeDecode(data) else {
             throw FINporterError.decodingError("unable to parse data")
         }
@@ -134,11 +135,11 @@ public class AllocSmart: FINporter {
 
         return items
     }
-    
+
     internal func decodeDelimitedRows(delimitedRows: [AllocRowed.RawRow],
                                       rejectedRows: inout [AllocRowed.RawRow],
-                                      strategyID: String) -> [AllocRowed.DecodedRow] {
-        
+                                      strategyID: String) -> [AllocRowed.DecodedRow]
+    {
         delimitedRows.reduce(into: []) { decodedRows, delimitedRow in
             guard let rawDescript = MAllocation.parseString(delimitedRow["Description"]),
                   rawDescript.count > 0,
@@ -149,14 +150,13 @@ public class AllocSmart: FINporter {
                 rejectedRows.append(delimitedRow)
                 return
             }
-            
+
             decodedRows.append([
                 MAllocation.CodingKeys.strategyID.rawValue: strategyID,
                 MAllocation.CodingKeys.assetID.rawValue: assetID,
                 MAllocation.CodingKeys.targetPct.rawValue: targetPct,
-                MAllocation.CodingKeys.isLocked.rawValue: false
+                MAllocation.CodingKeys.isLocked.rawValue: false,
             ])
         }
     }
 }
-
