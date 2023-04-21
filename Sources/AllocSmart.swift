@@ -123,8 +123,8 @@ public class AllocSmart: FINporter {
 
             if let csvRange = block.range(of: AllocSmart.csvRE, options: .regularExpression) {
                 let csvStr = block[csvRange]
-                let delimitedRows = try CSV(string: String(csvStr)).namedRows
-                let nuItems = decodeDelimitedRows(delimitedRows: delimitedRows,
+                let table = try NamedCSV(string: String(csvStr))
+                let nuItems = decodeDelimitedRows(delimitedRows: table.rows,
                                                   rejectedRows: &rejectedRows,
                                                   strategyID: strategyID)
                 items.append(contentsOf: nuItems)
